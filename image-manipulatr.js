@@ -1,7 +1,11 @@
 window.onload = function() {
   var fileInput = document.getElementById('files');
   fileInput.addEventListener('change', function(e) {
-     userImage = new UserImage("#panel", "none");
+     
+     userImage = new UserImage("#panel", {
+      style: "none",
+      width: 50
+     });
   });
 
 
@@ -63,7 +67,11 @@ function UserImage (canvasId, borderStyle) {
 
 function ImageManipulator(imgObj, canvasObj, borderStyle) {
   // set a max image size to be twice the size of the canvas
-  defaultBorder = "circle";
+  var defaultBorder = {
+    style: "circle",
+    width: 50
+  }
+
   this.border   = borderStyle || defaultBorder;
 
   var max       = canvasObj.width*2;
@@ -129,9 +137,13 @@ function ImageManipulator(imgObj, canvasObj, borderStyle) {
   });
 
   var button = document.querySelector('.rotate-canvas');
-
   button.addEventListener("click", function(event) {
     self.rotate();
+  });
+
+  var save = document.querySelector('.save');
+  save.addEventListener("click", function(event) {
+    self.save();
   });
 
   canvas.addEventListener("mousedown", function(event) {
@@ -151,67 +163,78 @@ function ImageManipulator(imgObj, canvasObj, borderStyle) {
 ImageManipulator.prototype.save = function() {
   var newCanvas        = document.createElement('canvas');
   var newCtx           = newCanvas.getContext("2d");
-  newCtx.canvas.width  = 300;
-  newCtx.canvas.height = 300;
+  var borderWidth      = this.border.width*2; // mutliplied by two to account for larger canvas size
+  newCtx.canvas.width  = this.canvas.width*2 - borderWidth;
+  newCtx.canvas.height = this.canvas.width*2 - borderWidth;
   // these hard coded numbers will be affected by the border options, but are static for now
+  // this saves and image onto a new canvas at a double the resolution (for retina)
+
   newCtx.drawImage(
     this.image.file, 
-    this.coord.x - 50, 
-    this.coord.y - 50, 
-    this.image.width*this.image.scale, 
-    this.image.height*this.image.scale);
+    this.coord.x*2 - borderWidth, 
+    this.coord.y*2 - borderWidth, 
+    (this.image.width*this.image.scale)*2, 
+    (this.image.height*this.image.scale)*2
+  );
   
   var dataURL = newCanvas.toDataURL();
   var input   = document.querySelector("#uploaded-image");
   input.value = dataURL;
+  var body = document.querySelector("body");
+  body.appendChild(newCanvas); // uncomment for debugging
+
 }
+
 
 ImageManipulator.prototype.repaint = function() {
   // clear the canvas for the repaint
 
-  this.canvas.ctx.clearRect(this.canvas.x, this.canvas.y, this.canvas.width, this.canvas.width);
+  this.canvas.ctx.clearRect(this.canvas.x, this.canvas.y, this.canvas.width, this.canvas.height);
 
+  var x, y;
+  var width = this.image.width*this.image.scale;
+  var height = this.image.height*this.image.scale;
+  
   var angle = this.canvas.angle;
-  if (angle === 90) {
-    this.canvas.ctx.drawImage(
-      this.image.file, 
-      this.coord.y, 
-     -this.coord.x, 
-      this.image.width*this.image.scale, 
-      this.image.height*this.image.scale);  
-  } else if (angle === 180) {
-    this.canvas.ctx.drawImage(
-      this.image.file, 
-     -this.coord.x, 
-     -this.coord.y, 
-      this.image.width*this.image.scale, 
-      this.image.height*this.image.scale);  
-  } else if (angle === 270) {
-    this.canvas.ctx.drawImage(
-      this.image.file, 
-     -this.coord.y, 
-      this.coord.x, 
-      this.image.width*this.image.scale, 
-      this.image.height*this.image.scale);  
-  } else {
-    this.canvas.ctx.drawImage(
-      this.image.file, 
-      this.coord.x, 
-      this.coord.y, 
-      this.image.width*this.image.scale, 
-      this.image.height*this.image.scale);  
+
+  switch(angle)
+  {
+    case 90:
+      x =  this.coord.y;
+      y = -this.coord.x; 
+      break;
+    case 180: 
+      x = -this.coord.x;
+      y = -this.coord.y; 
+      break;
+    case 270:   
+      x = -this.coord.y;
+      y =  this.coord.x; 
+      break
+    default: 
+      x =  this.coord.x;
+      y =  this.coord.y; 
+      break; 
   }
+  
+  this.canvas.ctx.drawImage(
+      this.image.file, 
+      x, 
+      y, 
+      width, 
+      height); 
+
   this.drawBorder();
   
 }
 
 ImageManipulator.prototype.drawBorder = function() {
   // should accept border options -- that will be version one
-  if (this.border === "circle") {
+  if (this.border.style === "circle") {
     this.circleBorder();
-  } else if (this.border === "square") {
+  } else if (this.border.style === "square") {
     this.squareBorder();
-  } else if (this.border === "none") {
+  } else if (this.border.style === "none") {
     // don't draw a border
   }
 }
