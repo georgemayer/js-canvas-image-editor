@@ -3,8 +3,8 @@ window.onload = function() {
   fileInput.addEventListener('change', function(e) {
      
      userImage = new UserImage("#panel", {
-      style: "none",
-      width: 0
+      borderStyle: "none",
+      borderWidth: 0
      });
   });
 
@@ -28,7 +28,7 @@ window.onload = function() {
   //   });
 }
 
-function UserImage (canvasId, borderStyle) {
+function UserImage (canvasId, options) {
   // also must accept a canvas by query selector
   // must prepare a canvas and image object for the image manipulator 
   var canvas        = document.querySelector(canvasId);
@@ -53,7 +53,7 @@ function UserImage (canvasId, borderStyle) {
         imgObj.src      = img.src;
         imgObj.width    = img.width;
         imgObj.height   = img.height; 
-        myEditableImage = new ImageManipulator(imgObj, canvasObj, borderStyle);
+        myEditableImage = new ImageManipulator(imgObj, canvasObj, options);
       }
     }
     reader.readAsDataURL(file); 
@@ -65,14 +65,21 @@ function UserImage (canvasId, borderStyle) {
 /* accepts an image oject (should have a file, source, height and width) 
    and a canvas object (should have a document selector, height and width) */
 
-function ImageManipulator(imgObj, canvasObj, borderStyle) {
+function ImageManipulator(imgObj, canvasObj, options) {
   // set a max image size to be twice the size of the canvas
-  var defaultBorder = {
-    style: "circle",
-    width: 50
+
+  this.settings = {
+    wrapperId: "#panel",
+    borderStyle: "circle",
+    borderWidth: 50
   }
 
-  this.border   = borderStyle || defaultBorder;
+  for(var key in options) {
+    if (options.hasOwnProperty(key)) {
+      this.settings[key] = options[key]
+    }  
+  }
+
 
   var max       = canvasObj.width*2;
 
@@ -124,6 +131,7 @@ function ImageManipulator(imgObj, canvasObj, borderStyle) {
 }
 
 ImageManipulator.prototype.init = function() {
+  var wrapper     = document.querySelector(this.settings.wrapperId);
   var canvas      = this.canvas.element; 
   var ctx         = canvas.getContext('2d');
   
@@ -167,7 +175,7 @@ ImageManipulator.prototype.init = function() {
 ImageManipulator.prototype.save = function() {
   var newCanvas        = document.createElement('canvas');
   var newCtx           = newCanvas.getContext("2d");
-  var borderWidth      = this.border.width*2; // mutliplied by two to account for larger canvas size
+  var borderWidth      = this.settings.borderWidth*2; // mutliplied by two to account for larger canvas size
   newCtx.canvas.width  = (this.canvas.width - borderWidth)*2;
   newCtx.canvas.height = (this.canvas.height - borderWidth)*2;
 
@@ -237,11 +245,13 @@ ImageManipulator.prototype.repaint = function() {
 
 ImageManipulator.prototype.drawBorder = function() {
   // should accept border options -- that will be version one
-  if (this.border.style === "circle") {
+  var style = this.settings.borderStyle;
+
+  if (style === "circle") {
     this.circleBorder();
-  } else if (this.border.style === "square") {
+  } else if (style === "square") {
     this.squareBorder();
-  } else if (this.border.style === "none") {
+  } else if (style === "none") {
     // don't draw a border
   }
 }
