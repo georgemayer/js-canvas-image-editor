@@ -1,10 +1,10 @@
 window.onload = function() {
-  var fileInput = document.getElementById('files');
+  var fileInput = document.querySelector('#files');
   fileInput.addEventListener('change', function(e) {
      
      userImage = new UserImage("#panel", {
       style: "none",
-      width: 50
+      width: 0
      });
   });
 
@@ -34,7 +34,7 @@ function UserImage (canvasId, borderStyle) {
   var canvas        = document.querySelector(canvasId);
   var imgObj        = {};
   var canvasObj     = {}; // must have element, element height and width 
-  var fileInput     = document.getElementById('files');
+  var fileInput     = document.querySelector('#files');
   var file          = fileInput.files[0];
   canvasObj.element = canvas;
   canvasObj.height  = canvas.height;
@@ -111,16 +111,20 @@ function ImageManipulator(imgObj, canvasObj, borderStyle) {
   }; 
 
   this.canvas = {
-    element: document.getElementById('panel'),
+    element: canvasObj.element,
      height: canvasObj.height,
       width: canvasObj.width,
           x: 0,
           y: 0,
       angle: 0
   }
+
+  this.init();
   
-  var canvas      = document.getElementById('panel');
-  // var canvas = this.canvas.element; // the canvas element in the document called from the canvas object
+}
+
+ImageManipulator.prototype.init = function() {
+  var canvas      = this.canvas.element; 
   var ctx         = canvas.getContext('2d');
   
   // add the canvas to the object
@@ -144,6 +148,7 @@ function ImageManipulator(imgObj, canvasObj, borderStyle) {
   var save = document.querySelector('.save');
   save.addEventListener("click", function(event) {
     self.save();
+    console.log('saved');
   });
 
   canvas.addEventListener("mousedown", function(event) {
@@ -157,31 +162,33 @@ function ImageManipulator(imgObj, canvasObj, borderStyle) {
      value = value / 100;
      self.scale(value); 
   });
-
 }
 
 ImageManipulator.prototype.save = function() {
   var newCanvas        = document.createElement('canvas');
   var newCtx           = newCanvas.getContext("2d");
   var borderWidth      = this.border.width*2; // mutliplied by two to account for larger canvas size
-  newCtx.canvas.width  = this.canvas.width*2 - borderWidth;
-  newCtx.canvas.height = this.canvas.width*2 - borderWidth;
+  newCtx.canvas.width  = (this.canvas.width - borderWidth)*2;
+  newCtx.canvas.height = (this.canvas.height - borderWidth)*2;
+
   // these hard coded numbers will be affected by the border options, but are static for now
   // this saves and image onto a new canvas at a double the resolution (for retina)
-
+  console.log(borderWidth);
   newCtx.drawImage(
     this.image.file, 
-    this.coord.x*2 - borderWidth, 
-    this.coord.y*2 - borderWidth, 
-    (this.image.width*this.image.scale)*2, 
-    (this.image.height*this.image.scale)*2
+    (this.coord.x - borderWidth/2)*2,
+    (this.coord.y - borderWidth/2)*2,
+    ((this.image.width*this.image.scale))*2, 
+    ((this.image.height*this.image.scale))*2
   );
-  
-  var dataURL = newCanvas.toDataURL();
-  var input   = document.querySelector("#uploaded-image");
-  input.value = dataURL;
+  // comment out for debugging
+  // var dataURL = newCanvas.toDataURL('image/jpeg');
+  // var input   = document.querySelector("#uploaded-image");
+  // input.value = dataURL;
+  // uncomment for debugging
   var body = document.querySelector("body");
-  body.appendChild(newCanvas); // uncomment for debugging
+  newCanvas.style.border = '1px solid black';
+  body.appendChild(newCanvas); 
 
 }
 
