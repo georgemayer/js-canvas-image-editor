@@ -17,9 +17,9 @@ gulp.task('lint', function() {
 // Concatenate & Minify JS
 gulp.task('scripts', function() {
     return gulp.src('js/*.js')
-        .pipe(concat('all.js'))
+        .pipe(concat('image-editor.js'))
         .pipe(gulp.dest('dist'))
-        .pipe(rename('all.min.js'))
+        .pipe(rename('image-editor.min.js'))
         .pipe(uglify())
         .pipe(gulp.dest('dist'));
 });
