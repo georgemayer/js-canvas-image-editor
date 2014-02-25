@@ -6,9 +6,7 @@ window.onload = function() {
       borderStyle: "square",
       borderWidth: 50,
       borderStroke: "#29ABE2",
-      borderShade: "rgba(255,255,255,.7)",
-      cropWidth: 300,
-      cropHeight: 300
+      borderShade: "rgba(255,255,255,.7)"
     });
   });
 };
